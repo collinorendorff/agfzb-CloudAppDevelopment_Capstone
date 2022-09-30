@@ -37,17 +37,21 @@
             <!--Portion of navbar with Log in/logout/sign up etc. -->
             <ul class="navbar-nav mr-auto">
                 {% if user.is_authenticated %}
-                <li class="nav-item">
-                    <a class="nav-link" href="#">{{ user.username }}</a>
+                <li>
+                    <a class="btn btn-link" href="#">{{ user.username }}</a>
+                    <a class="btn btn-link" href="{% url 'djangoapp:logout' %}">Logout</a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="logout/">Logout</a>
-                </li>
-
                 {% else %}
                 <li>
-                    <a class="btn btn-link" href="/djangoapp/login/">Login</a>
-                    <a class="btn btn-link" href="/djangoapp/signup/">Sign Up</a>
+                    <form class="form-inline" action="{% url 'djangoapp:login' %}" method="post">
+                        {% csrf_token %}
+                        <div class="input-group">
+                            <input type="text" class="form-control" placeholder="Username" name="username">
+                            <input type="password" class="form-control" placeholder="Password" name="psw">
+                            <button class="btn btn-primary" type="submit">Login</button>
+                            <a class="btn btn-link" href="{% url 'djangoapp:registration' %}">Sign Up</a>
+                        </div>
+                    </form>
                 </li>
                 {% endif %}
             </ul>

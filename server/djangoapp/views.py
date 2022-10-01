@@ -8,7 +8,7 @@ from django.contrib.auth import login, logout, authenticate
 from django.contrib import messages
 from datetime import datetime
 from .models import CarModel
-from .restapis import get_dealers_from_cf, get_dealer_reviews_from_cf
+from .restapis import get_dealers_from_cf, get_dealer_reviews_from_cf, store_review
 import logging
 import json
 
@@ -131,7 +131,7 @@ def add_review(request, dealer_id):
         car = CarModel.objects.get(id = request.POST['car'])
         if car:
             jsonpayload['car_make'] = car.carmake.name
-            jsonpayload['car_model'] = car.name
             jsonpayload['car_year'] = car.caryear.strftime("%Y")
+            jsonpayload['car_model'] = car.name
         store_review(url, jsonpayload)
     return redirect('djangoapp:dealer_details', dealer_id = dealer_id)

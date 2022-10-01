@@ -111,4 +111,5 @@ def analyze_review_sentiments(text):
                                     auth=('apikey', api_key))
     return response.json()["sentiment"]["document"]["label"]
 
-
+def store_review(url, payload):
+    post_request(url, payload=payload)

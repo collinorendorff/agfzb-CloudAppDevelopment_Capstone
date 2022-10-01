@@ -130,8 +130,8 @@ def add_review(request, dealer_id):
         jsonpayload['purchase_date'] = request.POST['purchase_date']
         car = CarModel.objects.get(id = request.POST['car'])
         if car:
-            jsonpayload['car_make'] = car.make.name
+            jsonpayload['car_make'] = car.carmake.name
             jsonpayload['car_model'] = car.name
-            jsonpayload['car_year'] = car.year.strftime("%Y")
+            jsonpayload['car_year'] = car.caryear.strftime("%Y")
         store_review(url, jsonpayload)
     return redirect('djangoapp:dealer_details', dealer_id = dealer_id)

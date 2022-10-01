@@ -7,6 +7,8 @@ from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth import login, logout, authenticate
 from django.contrib import messages
 from datetime import datetime
+from .models import CarModel
+from .restapis import get_dealers_from_cf, get_dealer_reviews_from_cf
 import logging
 import json
 
@@ -84,14 +86,52 @@ def registration_request(request):
 def get_dealerships(request):
     context = {}
     if request.method == "GET":
-        return render(request, 'djangoapp/index.html', context)
+        url = "https://co2fc.us-east.cf.appdomain.cloud/dealerships/dealer-get"
+        # Get dealers from the URL
+        dealerships = get_dealers_from_cf(url)
+        context['dealerships'] = dealerships
+    return render(request, 'djangoapp/index.html', context)
 
 
 # Create a `get_dealer_details` view to render the reviews of a dealer
-# def get_dealer_details(request, dealer_id):
-# ...
+def get_dealer_details(request, dealer_id):
+    context = {}
+    if request.method == "GET":
+        url = "https://co2fc.us-east.cf.appdomain.cloud/reviews/get-review"
+        reviews = get_dealer_reviews_from_cf(url)
+        context['dealer_id'] = dealer_id
+        context['dealer'] = get_dealer_info(dealer_id)
+        context['reviews'] = filter(lambda i: i.dealership == dealer_id, reviews)
+    return render(request, 'djangoapp/dealer_details.html', context)
+
+# helper function for get_dealer_details
+def get_dealer_info(dealer_id):
+    url = "https://co2fc.us-east.cf.appdomain.cloud/dealerships/dealer-get"
+    alldealers = get_dealers_from_cf(url)
+    return next(filter(lambda i: i.id == dealer_id, alldealers))
 
 # Create a `add_review` view to submit a review
 # def add_review(request, dealer_id):
 # ...
-
+def add_review(request, dealer_id):
+    if request.method == "GET":
+        context = {}
+        context['cars'] = CarModel.objects.all()
+        context['dealer_id'] = dealer_id
+        context['dealer'] = get_dealer_info(dealer_id)
+        return render(request, 'djangoapp/add_review.html', context)
+    if request.method == "POST":
+        url = "https://co2fc.us-east.cf.appdomain.cloud/api/review-post"
+        jsonpayload = {}
+        jsonpayload['name'] = request.POST['username']
+        jsonpayload['dealership'] = dealer_id
+        jsonpayload['review'] = request.POST['review']
+        jsonpayload['purchase'] = request.POST['purchase']
+        jsonpayload['purchase_date'] = request.POST['purchase_date']
+        car = CarModel.objects.get(id = request.POST['car'])
+        if car:
+            jsonpayload['car_make'] = car.make.name
+            jsonpayload['car_model'] = car.name
+            jsonpayload['car_year'] = car.year.strftime("%Y")
+        store_review(url, jsonpayload)
+    return redirect('djangoapp:dealer_details', dealer_id = dealer_id)

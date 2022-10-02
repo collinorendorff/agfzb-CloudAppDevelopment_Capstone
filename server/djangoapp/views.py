@@ -8,7 +8,8 @@ from django.contrib.auth import login, logout, authenticate
 from django.contrib import messages
 from datetime import datetime
 from .models import CarModel
-from .restapis import get_dealers_from_cf, get_dealer_reviews_from_cf, store_review
+from .restapis import get_dealer_reviews_from_cf, get_dealers_from_cf, store_review
+from . import restapis
 import logging
 import json
 
@@ -86,7 +87,7 @@ def registration_request(request):
 def get_dealerships(request):
     context = {}
     if request.method == "GET":
-        url = "https://co2fc.us-east.cf.appdomain.cloud/dealerships/dealer-get"
+        url = "https://us-east.functions.appdomain.cloud/api/v1/web/collinorendorff_djangoserver-space/dealership-package/get-dealership"
         # Get dealers from the URL
         dealerships = get_dealers_from_cf(url)
         context['dealerships'] = dealerships
@@ -94,19 +95,23 @@ def get_dealerships(request):
 
 
 # Create a `get_dealer_details` view to render the reviews of a dealer
-def get_dealer_details(request, dealer_id):
+def get_dealer_details(request):
     context = {}
     if request.method == "GET":
-        url = "https://co2fc.us-east.cf.appdomain.cloud/reviews/get-review"
-        reviews = get_dealer_reviews_from_cf(url)
-        context['dealer_id'] = dealer_id
-        context['dealer'] = get_dealer_info(dealer_id)
-        context['reviews'] = filter(lambda i: i.dealership == dealer_id, reviews)
-    return render(request, 'djangoapp/dealer_details.html', context)
+        url = "https://us-east.functions.appdomain.cloud/api/v1/web/collinorendorff_djangoserver-space/dealership-package/get-dealership"
+        dealer = get_dealers_from_cf(url,id)
+        context['dealer']=dealer
+
+        review_url = "https://us-east.functions.appdomain.cloud/api/v1/web/collinorendorff_djangoserver-space/dealership-package/get-review"
+        reviews= get_dealer_reviews_from_cf(review_url,id=id)
+        print(reviews)
+        context["reviews"]=reviews
+
+        return render(request, 'djangoapp/dealer_details.html', context)
 
 # helper function for get_dealer_details
 def get_dealer_info(dealer_id):
-    url = "https://co2fc.us-east.cf.appdomain.cloud/dealerships/dealer-get"
+    url = "https://us-east.functions.appdomain.cloud/api/v1/web/collinorendorff_djangoserver-space/dealership-package/get-dealership"
     alldealers = get_dealers_from_cf(url)
     return next(filter(lambda i: i.id == dealer_id, alldealers))
 
